@@ -1,17 +1,83 @@
 'use client';
 
 import { toast } from "sonner";
+import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const { isLoaded } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  // This ensures the component only renders client-side where Clerk is fully available
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Show loading skeleton
+  const renderAuthButton = (text: string) => {
+    if (!mounted || !isLoaded) {
+      return (
+        <Button 
+          variant="default"
+          className="w-full border-gray-300"
+          disabled
+        >
+          {text}
+        </Button>
+      );
+    }
+
+    return (
+      <>
+        <SignedIn>
+          <Button 
+            onClick={() => toast("Coming soon!")}
+            variant="default"
+            className="w-full border-gray-300"
+          >
+            {text}
+          </Button>
+        </SignedIn>
+        <SignedOut>
+          <SignInButton>
+            <Button 
+              variant="default"
+              className="w-full border-gray-300"
+            >
+              Sign In to Play
+            </Button>
+          </SignInButton>
+        </SignedOut>
+      </>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-white p-8">
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-light mb-4 tracking-tight">Card Games</h1>
+        <div className="text-center mb-6">
+          <h1 className="text-5xl font-light tracking-tight">Card Games</h1>
+        </div>
+
+        <div className="text-center mb-4">
           <p className="text-gray-600 text-lg font-light">Play classic card games online with friends - completely free</p>
         </div>
+
+        <SignedIn>
+          <div className="flex justify-center items-center gap-4 mb-12">
+            <UserButton 
+              afterSignOutUrl="/" 
+              appearance={{
+                elements: {
+                  userButtonAvatarBox: "h-12 w-12"
+                }
+              }}
+            />
+            <span className="text-lg font-medium">Martin</span>
+          </div>
+        </SignedIn>
 
         <div className="grid md:grid-cols-2 gap-8">
           <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
@@ -27,13 +93,7 @@ export default function Home() {
               </p>
             </CardContent>
             <CardFooter className="mt-auto">
-              <Button 
-                onClick={() => toast("Coming soon!")}
-                variant="default"
-                className="w-full border-gray-300"
-              >
-                Play Blackjack
-              </Button>
+              {renderAuthButton("Play Blackjack")}
             </CardFooter>
           </Card>
 
@@ -50,13 +110,7 @@ export default function Home() {
               </p>
             </CardContent>
             <CardFooter className="mt-auto">
-              <Button 
-                onClick={() => toast("Coming soon!")}
-                variant="default"
-                className="w-full border-gray-300"
-              >
-                Play Poker
-              </Button>
+              {renderAuthButton("Play Poker")}
             </CardFooter>
           </Card>
         </div>
